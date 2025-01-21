@@ -3,7 +3,6 @@ name: HackerNews Daily Digest
 on:
   schedule:
     - cron: "10 2 * * *" # 每天北京时间 10:10 执行
-  workflow_dispatch: # 允许手动触发
 
 jobs:
   send-news:
