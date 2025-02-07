@@ -2,7 +2,7 @@ name: HackerNews Daily Digest
 
 on:
   schedule:
-    - cron: "20 1 * * *" # 每天北京时间 10:10 执行 有大概40min左右的延迟
+    - cron: "20 0 * * *" # 每天北京时间 9:30 执行 有大概40min左右的延迟 
   workflow_dispatch: # 允许手动触发
 
 jobs:
