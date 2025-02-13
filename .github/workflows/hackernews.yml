@@ -2,7 +2,7 @@ name: HackerNews Daily Digest
 
 on:
   schedule:
-    - cron: "20 0 * * *" # 每天北京时间 9:30 执行 有大概40min左右的延迟 
+    - cron: "20 0 * * *" # 每天北京时间 9:30 执行 有大概40min左右的延迟
   workflow_dispatch: # 允许手动触发
 
 jobs:
@@ -21,6 +21,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install requests
+          pip install --upgrade 'volcengine-python-sdk[ark]'
 
       - name: Fetch and Send News
         env:

@@ -5,6 +5,29 @@ from datetime import datetime
 import hashlib
 import time
 import random
+from volcenginesdkarkruntime import Ark
+
+def get_ai_summary(url, title):
+    try:
+        client = Ark(
+            base_url="https://ark.cn-beijing.volces.com/api/v3",
+            api_key=os.environ['DOUBAO_API_KEY']
+        )
+        
+        prompt = f"请用中文简要总结这个网页的主要内容（100字以内）。网页标题：{title}，网页链接：{url}"
+        
+        completion = client.chat.completions.create(
+            model="ep-20250213200940-2zsxr",
+            messages=[
+                {"role": "system", "content": "你是一个专业的网页内容分析助手，善于提取网页的核心信息并简明扼要地总结。"},
+                {"role": "user", "content": prompt},
+            ],
+        )
+        
+        return completion.choices[0].message.content
+    except Exception as e:
+        print(f"AI summary error: {e}")
+        return ""
 
 def translate_text(text):
     try:
@@ -40,7 +63,7 @@ def translate_text(text):
 def get_top_stories():
     try:
         response = requests.get('https://hacker-news.firebaseio.com/v0/topstories.json')
-        response.raise_for_status()  # 检查 HTTP 错误
+        response.raise_for_status()
         story_ids = response.json()[:10]
     except Exception as e:
         print(f"Error fetching top stories: {e}")
@@ -54,14 +77,15 @@ def get_top_stories():
             response.raise_for_status()
             story = response.json()
             if story and 'title' in story and 'url' in story:
-                # 获取翻译
                 translated_title = translate_text(story['title'])
+                ai_summary = get_ai_summary(story['url'], story['title'])
                 stories.append({
                     'title': story['title'],
                     'translated_title': translated_title,
-                    'url': story['url']
+                    'url': story['url'],
+                    'summary': ai_summary
                 })
-                print(f"Successfully fetched and translated story: {story['title']}")
+                print(f"Successfully fetched and processed story: {story['title']}")
         except Exception as e:
             print(f"Error fetching story {story_id}: {e}")
             continue
@@ -70,31 +94,33 @@ def get_top_stories():
 
 def send_to_lark(stories):
     webhook_url = os.environ['LARK_WEBHOOK']
-    
-    # 构建消息内容
     current_date = datetime.now().strftime('%Y-%m-%d')
     
-    # 构建内容数组
     content_elements = []
     for idx, story in enumerate(stories, 1):
-        # 添加序号和空格
         content_elements.append({
             "tag": "text",
             "text": f"{idx}. "
         })
-        # 添加原文链接
         content_elements.append({
             "tag": "a",
             "text": f"{story['title']}",
             "href": story['url']
         })
-        # 添加翻译（如果有）
         if story['translated_title']:
             content_elements.append({
                 "tag": "text",
                 "text": f" ({story['translated_title']})"
             })
-        # 添加换行
+        content_elements.append({
+            "tag": "text",
+            "text": "\n"
+        })
+        if story['summary']:
+            content_elements.append({
+                "tag": "text",
+                "text": f"AI概要：{story['summary']}\n"
+            })
         content_elements.append({
             "tag": "text",
             "text": "\n"
