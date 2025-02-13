@@ -26,4 +26,5 @@ jobs:
       - name: Fetch and Send News
         env:
           LARK_WEBHOOK: ${{ secrets.LARK_WEBHOOK }}
+          DOUBAO_API_KEY: ${{ secrets.DOUBAO_API_KEY }}
         run: python .github/scripts/fetch_news.py
